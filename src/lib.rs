@@ -1,3 +1,9 @@
+pub mod atmosphere;
+pub mod bc;
+pub mod trajectory;
+mod quants;
+mod vector;
+
 #[cfg(test)]
 mod tests {
     #[test]
