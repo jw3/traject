@@ -27,7 +27,7 @@ fn main() {
     t.velocity = 1500.0;
     t.range_min = bracket(0, MIN_RN, MAX_RN, DEF_RN);
     t.range_max = bracket(0, MIN_RX, MAX_RX, DEF_RX);
-    t.range_inc = bracket(0, MIN_RI, MAX_RI, DEF_RI);
+    t.range_inc = 1;
     t.weight = bracket(0.0, MIN_WT, MAX_WT, DEF_WT);
 
     calc(&t).iter().for_each(|r| println!("{:?}", r));

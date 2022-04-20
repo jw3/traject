@@ -1,5 +1,5 @@
 use std::ops::{Add, Mul, Sub};
-use vecmath::{vec3_len, vec3_mul, vec3_sub, Vector3};
+use vecmath::{vec3_add, vec3_len, vec3_mul, vec3_sub, Vector3};
 use vecmath::traits::Sqrt;
 
 pub type Vector = VectorT<f64>;
@@ -36,6 +36,12 @@ impl<T> VectorT<T> {
             z,
         }
     }
+
+    pub fn add(self, other: Self) -> Self
+        where T: Copy + Add<T, Output=T> {
+        vec3_add(self.into(), other.into()).into()
+    }
+
     pub fn sub(self, other: Self) -> Self
         where T: Copy + Sub<T, Output=T> {
         vec3_sub(self.into(), other.into()).into()

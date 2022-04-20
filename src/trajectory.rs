@@ -1,5 +1,5 @@
 use vecmath::{Vector2, Vector3, vec2_mul, vec3_mul, vec3_sub, vec3_add, vec3_len};
-use crate::atmosphere::Atmosphere;
+use crate::atmosphere::{ATMOS_DENSSTD, Atmosphere};
 use crate::bc::BC;
 use crate::bc::BC::G7;
 use crate::quants::Distance::Inch;
@@ -10,6 +10,16 @@ pub const MAX_RI: i32 = 500;
 pub const DEF_RI: i32 = 100;
 
 const TRAJ_GRAVITY: V3 = [0.0, TRAJ_GM, 0.0];
+
+const TRAJ_GM: f64 = -32.17;
+const TRAJ_MAXITCNT: usize = 10;
+const TRAJ_DX: f64 = 3.0;
+const TRAJ_ERROR: f64 = 0.02 / 12.0;
+const TRAJ_NSTEPS: usize = 100;
+const TRAJ_MINCHRONO: f64 = 0.1;
+const TRAJ_ABSMAXVEL: f64 = 5000.0;
+const TRAJ_ABSMINVX: f64 = 50.0;
+const TRAJ_ABSMINY: f64 = -1999.9 / 12.0;
 
 
 #[derive(Debug)]
@@ -82,12 +92,6 @@ pub struct Range {
 }
 
 
-const ATMOS_DENSSTD: f64 = 0.076474;
-const TRAJ_ABSMAXVEL: f64 = 5000.0;
-const TRAJ_GM: f64 = -32.17;
-const TRAJ_MINCHRONO: f64 = 0.1;
-const TRAJ_NSTEPS: usize = 100;
-
 fn correct_gravity(traj: &Trajectory) -> Vector {
     let cl = traj.los_angle.cos();
     let sl = traj.los_angle.sin();
@@ -133,17 +137,10 @@ fn mph_to_fps(mph: f64) -> f64 {
     mph * 5280.0 / 3600.0
 }
 
-const TRAJ_DX: f64 = 3.0;
-const TRAJ_ERROR: f64 = 0.02 / 12.0;
-const TRAJ_ABSMINVX: f64 = 50.0;
-const TRAJ_MAXITCNT: usize = 10;
-
-const TRAJ_ABSMINY: f64 = -1999.9 / 12.0;
-
 pub fn calc(traj: &Trajectory) -> Vec<Range> {
     ///let i = (traj.range_max - traj.range_min) / traj.range_inc + 1;
     let z = traj.zero;
-    let z = [z.x * TRAJ_DX, Inch(z.y).to_feet(), Inch(z.z).to_feet()];
+    let z = Vector::new(z.x * TRAJ_DX, Inch(z.y).to_feet(), Inch(z.z).to_feet());
 
     // todo
     //  o = trajectory->options;
@@ -175,8 +172,8 @@ pub fn calc(traj: &Trajectory) -> Vec<Range> {
     while err > TRAJ_ERROR && itcnt < TRAJ_MAXITCNT || itcnt == 0 {
         let mut vm = mv;
         let mut t = 0.0;
-        let mut r: Vector = [0.0, -traj.sight_height, -traj.sight_offset].into();
-        let mut v: Vector = vec3_mul([vm, vm, vm], [elev.cos() * azim.cos(), elev.sin(), elev.cos() * azim.sin()]).into();
+        let mut r = Vector::new(0.0, -traj.sight_height, -traj.sight_offset);
+        let mut v = Vector::new(elev.cos() * azim.cos(), elev.sin(), elev.cos() * azim.sin()).mul_by(vm);
 
         let mut dy: f64 = 0.0;
         let mut dz: f64 = 0.0;
@@ -185,7 +182,7 @@ pub fn calc(traj: &Trajectory) -> Vec<Range> {
         let mut tv = Vector::default();
         let mut drg: f64 = 0.0;
 
-        let k = traj.range_max.max(z[0] as i32);
+        let k = traj.range_max.max(z.x as i32);
         println!("k: {}", k);
         for i in 0..k {
             if vm < TRAJ_ABSMINVX || r.y < TRAJ_ABSMINY {
@@ -194,7 +191,6 @@ pub fn calc(traj: &Trajectory) -> Vec<Range> {
             }
             if i >= traj.range_min && i <= traj.range_max && i % traj.range_inc == 0 {
                 print!(".");
-                // todo;; write traj stage
                 if vm < TRAJ_ABSMINVX || r.y < TRAJ_ABSMINY {
                     println!("break: a");
                     break;
@@ -228,14 +224,14 @@ pub fn calc(traj: &Trajectory) -> Vec<Range> {
             drg = eq * vm * traj.bc.drag(vm / mach);
             v = v.sub(tv.mul_by(drg).sub(g).mul_by(dt));
 
-            dr = [TRAJ_DX, v.y * dt, v.z * dt].into();
-            r = vec3_add(r.into(), dr.into()).into();
+            dr = Vector::new(TRAJ_DX, v.y * dt, v.z * dt);
+            r = r.add(dr);
             vm = v.len();
             t = t + dr.len() / vm;
 
-            if (r.x - z[0]).abs() < 0.5 * TRAJ_DX {
-                dy = r.y - z[1];
-                dz = r.z - z[2];
+            if (r.x - z.x).abs() < 0.5 * TRAJ_DX {
+                dy = r.y - z.y;
+                dz = r.z - z.z;
                 err = 0.0;
                 // if (options_getoption(o, TRAJ_OPT_ELEV))
                 // {

@@ -1,4 +1,14 @@
-const ATMOS_DENSSTD: f64 = 0.076474;
+pub const ATMOS_DENSSTD: f64 = 0.076474;
+const ATMOS_T0: f64 = 459.67;
+const ATMOS_VV1: f64 = 49.0223;
+const ATMOS_A0: f64 = 1.24871;
+const ATMOS_A1: f64 = 0.0988438;
+const ATMOS_A2: f64 = 0.00152907;
+const ATMOS_A3: f64 = -3.07031e-06;
+const ATMOS_A4: f64 = 4.21329e-07;
+const ATMOS_PRESSSTD: f64 = 29.92;
+const ATMOS_ETCONV: f64 = 3.342e-04;
+const ATMOS_TSTDABS: f64 = 518.67;
 
 #[derive(Debug)]
 pub struct Atmosphere {
@@ -31,11 +41,6 @@ impl Default for Atmosphere {
     }
 }
 
-//   atmos->mach = sqrt(t + ATMOS_T0)*ATMOS_VV1;
-
-//  double t, p, hc, et, et0;
-//   t = atmos->temperature;
-//   p = atmos->pressure;
 //   if (t > 0.0)
 //   {
 //     et0 = ATMOS_A0 + t*(ATMOS_A1 + t*(ATMOS_A2 + t*(ATMOS_A3 + t*ATMOS_A4)));
@@ -46,16 +51,7 @@ impl Default for Atmosphere {
 //   atmos->density =
 //     ATMOS_DENSSTD*(ATMOS_TSTDABS/(t + ATMOS_T0))*hc;
 
-const ATMOS_T0: f64 = 459.67;
-const ATMOS_VV1: f64 = 49.0223;
-const ATMOS_A0: f64 = 1.24871;
-const ATMOS_A1: f64 = 0.0988438;
-const ATMOS_A2: f64 = 0.00152907;
-const ATMOS_A3: f64 = -3.07031e-06;
-const ATMOS_A4: f64 = 4.21329e-07;
-const ATMOS_PRESSSTD: f64 = 29.92;
-const ATMOS_ETCONV: f64 = 3.342e-04;
-const ATMOS_TSTDABS: f64 = 518.67;
+
 
 fn mach_density(atmos: &Atmosphere) -> (f64, f64) {
     let t = atmos.temperature;
