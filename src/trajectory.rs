@@ -1,7 +1,7 @@
 use vecmath::{Vector2, Vector3, vec2_mul, vec3_mul, vec3_sub, vec3_add, vec3_len};
 use crate::atmosphere::{ATMOS_DENSSTD, Atmosphere};
 use crate::bc::BC;
-use crate::bc::BC::G7;
+use crate::bc::DragFn::G7;
 use crate::quants::Distance::Inch;
 use crate::vector::{V3, Vector};
 
@@ -68,7 +68,7 @@ impl Default for Trajectory {
             gravity: TRAJ_GRAVITY.into(),
             options: Default::default(),
             atmos: Default::default(),
-            bc: G7,
+            bc: Default::default(),
         }
     }
 }

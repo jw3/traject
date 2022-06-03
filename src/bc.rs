@@ -1,12 +1,29 @@
+const BC_PIR: f64 = 2.08551e-04;
+
 #[derive(Debug)]
-pub enum BC {
+pub enum DragFn {
     G7
+}
+
+#[derive(Debug)]
+pub struct BC {
+    v: f64,
+    f: DragFn
+}
+
+impl Default for BC {
+    fn default() -> Self {
+        Self {
+            v: 0.65,
+            f: DragFn::G7
+        }
+    }
 }
 
 impl BC {
     pub fn drag(&self, mach: f64) -> f64 {
-        match self {
-            BC::G7 => g7(mach)
+        match self.f {
+            DragFn::G7 => BC_PIR * g7(mach) / self.v
         }
     }
 }
