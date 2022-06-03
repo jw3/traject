@@ -41,18 +41,6 @@ impl Default for Atmosphere {
     }
 }
 
-//   if (t > 0.0)
-//   {
-//     et0 = ATMOS_A0 + t*(ATMOS_A1 + t*(ATMOS_A2 + t*(ATMOS_A3 + t*ATMOS_A4)));
-//     et = ATMOS_ETCONV*atmos->humidity*et0;
-//     hc = (p - 0.3783*et)/ATMOS_PRESSSTD;
-//   }
-//   else hc = 1.0;
-//   atmos->density =
-//     ATMOS_DENSSTD*(ATMOS_TSTDABS/(t + ATMOS_T0))*hc;
-
-
-
 fn mach_density(atmos: &Atmosphere) -> (f64, f64) {
     let t = atmos.temperature;
     let p = atmos.pressure;
@@ -60,7 +48,9 @@ fn mach_density(atmos: &Atmosphere) -> (f64, f64) {
         let et0 = ATMOS_A0 + t * (ATMOS_A1 + t * (ATMOS_A2 + t * (ATMOS_A3 + t * ATMOS_A4)));
         let et = ATMOS_ETCONV * atmos.humidity * et0;
         (p - 0.3783 * et) / ATMOS_PRESSSTD
-    } else { 1.0 };
+    } else {
+        1.0
+    };
 
     let d = ATMOS_DENSSTD * (ATMOS_TSTDABS / (t + ATMOS_T0)) * hc;
     let m = (t + ATMOS_T0).sqrt() * ATMOS_VV1;

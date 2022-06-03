@@ -1,9 +1,9 @@
-use vecmath::{Vector2, Vector3, vec2_mul, vec3_mul, vec3_sub, vec3_add, vec3_len};
-use crate::atmosphere::{ATMOS_DENSSTD, Atmosphere};
+use crate::atmosphere::{Atmosphere, ATMOS_DENSSTD};
+
 use crate::bc::BC;
-use crate::bc::DragFn::G7;
 use crate::quants::Distance::Inch;
-use crate::vector::{V3, Vector};
+use crate::vector::{Vector, V3};
+
 
 pub const MIN_RI: i32 = 1;
 pub const MAX_RI: i32 = 500;
@@ -20,7 +20,6 @@ const TRAJ_MINCHRONO: f64 = 0.1;
 const TRAJ_ABSMAXVEL: f64 = 5000.0;
 const TRAJ_ABSMINVX: f64 = 50.0;
 const TRAJ_ABSMINY: f64 = -1999.9 / 12.0;
-
 
 #[derive(Debug)]
 pub struct Trajectory {
@@ -76,9 +75,6 @@ impl Default for Trajectory {
 #[derive(Debug, Default)]
 struct Options {}
 
-
-
-
 #[derive(Debug, Default)]
 pub struct Range {
     range: f64,
@@ -90,7 +86,6 @@ pub struct Range {
     lead: f64,
     time: f64,
 }
-
 
 fn correct_gravity(traj: &Trajectory) -> Vector {
     let cl = traj.los_angle.cos();
@@ -150,8 +145,8 @@ pub fn calc(traj: &Trajectory) -> Vec<Range> {
     let mach = traj.atmos.mach;
     println!("mach {}", mach);
     let eq = traj.atmos.density / ATMOS_DENSSTD;
-    let sp = traj.speed;
-    let sa = traj.speed_angle;
+    let _sp = traj.speed;
+    let _sa = traj.speed_angle;
     let g = correct_gravity(traj);
     let w = correct_wind(traj);
     let mv = correct_velocity(traj);
@@ -173,11 +168,12 @@ pub fn calc(traj: &Trajectory) -> Vec<Range> {
         let mut vm = mv;
         let mut t = 0.0;
         let mut r = Vector::new(0.0, -traj.sight_height, -traj.sight_offset);
-        let mut v = Vector::new(elev.cos() * azim.cos(), elev.sin(), elev.cos() * azim.sin()).mul_by(vm);
+        let mut v =
+            Vector::new(elev.cos() * azim.cos(), elev.sin(), elev.cos() * azim.sin()).mul_by(vm);
 
         let mut dy: f64 = 0.0;
         let mut dz: f64 = 0.0;
-        let mut dr  = Vector::default();
+        let mut dr = Vector::default();
         let mut dt: f64 = 0.0;
         let mut tv = Vector::default();
         let mut drg: f64 = 0.0;

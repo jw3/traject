@@ -1,8 +1,8 @@
 traject
 ===
 
-porting gpl'd jbm to rust
+Porting the GPL'd JBM to Rust.
 
 ## license
 
-GPLv3
+GPL v3
