@@ -32,7 +32,7 @@ pub struct Trajectory {
     cant_angle: f64,
     sight_height: f64,
     sight_offset: f64,
-    speed: f64,
+    pub speed: f64,
     speed_angle: f64,
     pub range_min: i32,
     pub range_max: i32,
@@ -132,6 +132,18 @@ fn mph_to_fps(mph: f64) -> f64 {
     mph * 5280.0 / 3600.0
 }
 
+fn energy(w: f64, v: f64) -> f64 {
+    0.5 * w * v * v / (-TRAJ_GM * 7000.0)
+}
+
+fn momentum(w: f64, v: f64) -> f64 {
+    w * v / (-TRAJ_GM * 7000.0)
+}
+
+fn lead(t: f64, s: f64, a: f64) -> f64 {
+    a.sin() * t * s
+}
+
 pub fn calc(traj: &Trajectory) -> Vec<Range> {
     ///let i = (traj.range_max - traj.range_min) / traj.range_inc + 1;
     let z = traj.zero;
@@ -145,8 +157,8 @@ pub fn calc(traj: &Trajectory) -> Vec<Range> {
     let mach = traj.atmos.mach;
     println!("mach {}", mach);
     let eq = traj.atmos.density / ATMOS_DENSSTD;
-    let _sp = traj.speed;
-    let _sa = traj.speed_angle;
+    let sp = traj.speed;
+    let sa = traj.speed_angle;
     let g = correct_gravity(traj);
     let w = correct_wind(traj);
     let mv = correct_velocity(traj);
@@ -195,14 +207,11 @@ pub fn calc(traj: &Trajectory) -> Vec<Range> {
                     ranges.push(Range {
                         range: r.x / TRAJ_DX,
                         velocity: vm,
-                        //         trajectory->ranges[j].energy   = TRAJ_ENERGY(trajectory->weight, vm);
-                        energy: 0.0,
-                        //         trajectory->ranges[j].momentum = TRAJ_MOMENTUM(trajectory->weight, vm);
-                        momentum: 0.0,
+                        energy: energy(traj.weight, vm),
+                        momentum: momentum(traj.weight, vm),
                         drop: r.y,
                         windage: r.z,
-                        //         trajectory->ranges[j].lead     = TRAJ_LEAD(t, sp, sa);
-                        lead: 0.0,
+                        lead: lead(t, sp, sa),
                         time: t,
                     });
                 }
