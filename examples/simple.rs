@@ -10,5 +10,15 @@ fn main() {
 
     t.speed = 100.0;
 
-    calc(&t).iter().for_each(|r| println!("{:?}", r));
+    print_header();
+    calc(&t).iter().for_each(print_range);
+}
+
+fn print_header() {
+    println!("| Range | Drop | Windage | Velocity | Energy | Time |");
+    println!("| ----- | ---- | ------- | -------- | ------ | ---- |");
+}
+
+fn print_range(r: &Range) {
+    println!("| {:4}  |{:.2} |  {:.1}  | {:.1}  | {:.1} | {:.3} |", r.range, r.drop, r.windage, r.velocity, r.energy, r.time)
 }

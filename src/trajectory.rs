@@ -24,7 +24,7 @@ const TRAJ_ABSMINY: f64 = -1999.9 / 12.0;
 #[derive(Debug)]
 pub struct Trajectory {
     pub velocity: f64,
-    chronod: f64,
+    pub chronod: f64,
     pub weight: f64,
     azimuth: f64,
     elevation: f64,
@@ -42,7 +42,7 @@ pub struct Trajectory {
     gravity: Vector,
     options: Options,
     atmos: Atmosphere,
-    bc: BC,
+    pub bc: BC,
 }
 
 impl Default for Trajectory {
@@ -77,14 +77,14 @@ struct Options {}
 
 #[derive(Debug, Default)]
 pub struct Range {
-    range: f64,
-    velocity: f64,
-    energy: f64,
-    momentum: f64,
-    drop: f64,
-    windage: f64,
-    lead: f64,
-    time: f64,
+    pub range: f64,
+    pub velocity: f64,
+    pub energy: f64,
+    pub momentum: f64,
+    pub drop: f64,
+    pub windage: f64,
+    pub lead: f64,
+    pub time: f64,
 }
 
 fn correct_gravity(traj: &Trajectory) -> Vector {
@@ -145,7 +145,7 @@ fn lead(t: f64, s: f64, a: f64) -> f64 {
 }
 
 pub fn calc(traj: &Trajectory) -> Vec<Range> {
-    ///let i = (traj.range_max - traj.range_min) / traj.range_inc + 1;
+    //let i = (traj.range_max - traj.range_min) / traj.range_inc + 1;
     let z = traj.zero;
     let z = Vector::new(z.x * TRAJ_DX, Inch(z.y).to_feet(), Inch(z.z).to_feet());
 
@@ -155,7 +155,6 @@ pub fn calc(traj: &Trajectory) -> Vec<Range> {
     //  atmos_atmos(trajectory->atmos);
 
     let mach = traj.atmos.mach;
-    println!("mach {}", mach);
     let eq = traj.atmos.density / ATMOS_DENSSTD;
     let sp = traj.speed;
     let sa = traj.speed_angle;
@@ -175,7 +174,6 @@ pub fn calc(traj: &Trajectory) -> Vec<Range> {
     let mut itcnt = 0;
     let mut ranges = vec![];
 
-    println!("{:?}", traj);
     while err > TRAJ_ERROR && itcnt < TRAJ_MAXITCNT || itcnt == 0 {
         let mut vm = mv;
         let mut t = 0.0;
@@ -191,16 +189,15 @@ pub fn calc(traj: &Trajectory) -> Vec<Range> {
         let mut drg: f64 = 0.0;
 
         let k = traj.range_max.max(z.x as i32);
-        println!("k: {}", k);
+        // println!("k: {}", k);
         for i in 0..k {
             if vm < TRAJ_ABSMINVX || r.y < TRAJ_ABSMINY {
-                println!("break: a");
+                println!("break: a1 {} | {}", vm, r.y);
                 break;
             }
             if i >= traj.range_min && i <= traj.range_max && i % traj.range_inc == 0 {
-                print!(".");
                 if vm < TRAJ_ABSMINVX || r.y < TRAJ_ABSMINY {
-                    println!("break: a");
+                    println!("break: a2");
                     break;
                 }
                 if i >= traj.range_min && i <= traj.range_max && i % traj.range_inc == 0 {
@@ -227,7 +224,14 @@ pub fn calc(traj: &Trajectory) -> Vec<Range> {
             tv = tv.sub(w);
             vm = tv.len();
             drg = eq * vm * traj.bc.drag(vm / mach);
-            v = v.sub(tv.mul_by(drg).sub(g).mul_by(dt));
+
+            //                                           inner
+            // v   = SUBTRACT(v, MULTIPLY(dt, SUBTRACT(MULTIPLY(drg, tv), g)));
+            let inner_mul = tv.mul_by(drg);
+            let inner_sub = inner_mul.sub(g);
+            let mul = inner_sub.mul_by(dt);
+              v = v.sub(mul);
+            //   v = v.sub(tv.mul_by(drg).sub(g).mul_by(dt));
 
             dr = Vector::new(TRAJ_DX, v.y * dt, v.z * dt);
             r = r.add(dr);
